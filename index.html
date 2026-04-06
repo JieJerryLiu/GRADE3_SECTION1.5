@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Column Addition Quiz</title>
+<style>
+body {
+    font-family: Arial;
+    background: #f5f5f5;
+    text-align: center;
+    padding-top: 50px;
+}
+.box {
+    background: white;
+    width: 260px;
+    margin: auto;
+    padding: 20px;
+    border-radius: 8px;
+}
+.grid {
+    display: grid;
+    grid-template-columns: 30px 40px 40px;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    font-size: 24px;
+    margin-top:5px;
+}
+.line {
+    grid-column: span 3;
+    border-top: 2px solid black;
+    margin: 5px 0;
+}
+.inputs input {
+    width: 35px;
+    height: 35px;
+    font-size: 20px;
+    text-align: center;
+}
+#btnRow {
+    display: flex;
+    margin-top:10px;
+    gap: 10px;
+}
+button {
+    flex: 1;
+    padding:10px;
+    font-size:16px;
+    border:none;
+    border-radius:5px;
+    background:#4CAF50;
+    color:white;
+    cursor:pointer;
+}
+#questionNum {
+    color: blue;
+    margin-bottom:30px;
+    font-weight:bold;
+    font-size: 24px;
+}
+</style>
+</head>
+<body>
+
+<div class="box" id="container">
+    <!-- Start page -->
+    <div id="startPage">
+        <h2>Lesson 1.5</h2>
+        <p>Adding 2-Digit Numbers</p>
+        <input type="text" id="studentName" placeholder="Enter your name" style="width: 150px; font-size: 16px;">
+        <br><br>
+        <button onclick="startQuiz()">Start</button>
+    </div>
+
+    <!-- Quiz content -->
+    <div id="quizPage" style="display:none;">
+        <div id="questionNum">Question 1 / 5</div>
+        <div class="grid" id="grid"></div>
+        <div id="btnRow">
+            <button id="prevBtn" onclick="prevQuestion()">Previous</button>
+            <button id="nextBtn" onclick="nextQuestion()">Next</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// --- QUESTIONS ---
+let questions = [
+    { a: 25, b: 55, answer: "80" },
+    { a: 17, b: 33, answer: "50" },
+    { a: 54, b: 17, answer: "71" },
+    { a: 46, b: 26, answer: "72" },
+    { a: 15, b: 27, answer: "42" },
+    { a: 46, b: 16, answer: "62" },
+    { a: 15, b: 27, answer: "42" },
+    { a: 26, b: 18, answer: "44" },
+    { a: 18, b: 28, answer: "46" },
+    { a: 71, b: 19, answer: "90" },
+    { a: 77, b: 17, answer: "94" },
+    { a: 35, b: 36, answer: "61" },
+    { a: 28, b: 63, answer: "91" },
+    { a: 24, b: 46, answer: "70" },
+    { a: 38, b: 15, answer: "53" },
+    { a: 15, b: 39, answer: "54" },
+    { a: 29, b: 49, answer: "78" },
+    { a: 76, b: 14, answer: "90" },
+    { a: 54, b: 38, answer: "92" },
+    { a: 27, b: 48, answer: "75" },
+    { a: 13, b: 78, answer: "91" },
+    { a: 29, b: 29, answer: "58" },
+    { a: 26, b: 55, answer: "81" },
+    { a: 15, b: 65, answer: "80" },
+    { a: 52, b: 18, answer: "70" },
+    { a: 53, b: 39, answer: "92" },
+    { a: 78, b: 18, answer: "96" },
+    { a: 34, b: 45, answer: "79" },
+    { a: 45, b: 27, answer: "82" },
+    { a: 54, b: 26, answer: "80" }
+];
+
+let current = 0;
+let userAnswers = new Array(questions.length).fill("");
+let studentName = "";
+let sectionName = "Lesson 1.5"; // fixed section name
+
+// your Google Apps Script Web App URL
+const sheetURL = "https://script.google.com/macros/s/AKfycbxb3230F-2WCqYMmQOiqanyaGxA7wru1WTF693QQFoE0hi3-EFlJpRjehq5rPPDQ30-kA/exec"; // <-- replace with your deployed URL
+
+// --- START QUIZ ---
+function startQuiz(){
+    studentName = document.getElementById('studentName').value.trim();
+    if(!studentName){
+        alert("Please enter your name to start.");
+        return;
+    }
+    document.getElementById('startPage').style.display = 'none';
+    document.getElementById('quizPage').style.display = 'block';
+    loadQuestion();
+}
+
+// --- LOAD QUESTION ---
+function loadQuestion(){
+    let q = questions[current];
+    let aStr = q.a.toString().padStart(2,'0');
+    let bStr = q.b.toString().padStart(2,' ');
+
+    document.getElementById("grid").innerHTML = `
+        <div></div>
+        <div>${aStr[0]}</div>
+        <div>${aStr[1]}</div>
+        <div>+</div>
+        <div>${bStr[0]===" "? "" : bStr[0]}</div>
+        <div>${bStr[1]}</div>
+        <div class="line"></div>
+        <div></div>
+        <div class="inputs"><input id="d1" maxlength="1"></div>
+        <div class="inputs"><input id="d2" maxlength="1"></div>
+    `;
+
+    // restore previous answers
+    let saved = userAnswers[current];
+    if(saved){
+        document.getElementById('d1').value = saved[0] || "";
+        document.getElementById('d2').value = saved[1] || "";
+    }
+
+    // update question number
+    document.getElementById("questionNum").innerText = `Question ${current+1} / ${questions.length}`;
+
+    // previous button visibility
+    let prevBtn = document.getElementById('prevBtn');
+    let btnRow = document.getElementById('btnRow');
+
+    if(current===0){
+        prevBtn.style.display='none';
+        btnRow.style.justifyContent='center';
+    } else {
+        prevBtn.style.display='block';
+        btnRow.style.justifyContent='space-between';
+    }
+
+    // next button text
+    document.getElementById('nextBtn').innerText = current===questions.length-1 ? 'Finish' : 'Next';
+}
+
+// --- SAVE ANSWER ---
+function saveAnswer(){
+    let d1 = document.getElementById('d1').value || '';
+    let d2 = document.getElementById('d2').value || '';
+    userAnswers[current] = (d1+d2).replace(/^0+/,'');
+}
+
+// --- NAVIGATION ---
+function nextQuestion(){
+    saveAnswer();
+    if(current===questions.length-1){
+        finishQuiz();
+        return;
+    }
+    current++;
+    loadQuestion();
+}
+function prevQuestion(){
+    saveAnswer();
+    if(current>0){
+        current--;
+        loadQuestion();
+    }
+}
+
+// --- FINISH QUIZ ---
+function finishQuiz(){
+    saveAnswer();
+    let score = 0;
+    let details = [];
+
+    // calculate score and details
+    questions.forEach((q,i)=>{
+        let user = userAnswers[i]||"";
+        let isCorrect = Number(user)===Number(q.answer);
+        if(isCorrect) score++;
+        else details.push(`Q${i+1}: Your=${user||"blank"}, Correct=${q.answer}`);
+    });
+
+    // show final page
+    let html = `<div style="font-family: Arial; padding: 40px; text-align:center;">
+        <h1>Final Report</h1>
+        <h2>Score: ${score} / ${questions.length}</h2>
+        <ul style="text-align:left; display:inline-block;">`;
+    
+    questions.forEach((q,i)=>{
+        let user = userAnswers[i]||"";
+        let isCorrect = Number(user)===Number(q.answer);
+        html += `<li><span style="font-size:20px">${isCorrect?"✅":"❌"}</span> Question ${i+1}</li>`;
+    });
+
+    html += `</ul>   
+        <p><strong>${studentName}</strong>, homework is finished, and the result is saved.</p>
+    </div>`;
+    document.body.innerHTML = html;
+
+    // --- send result to Google Sheet ---
+    fetch(sheetURL, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({
+            Name: studentName,
+            Section: sectionName,
+            Score: score,
+            Details: details.join("; "),
+            Time: new Date().toISOString()
+        })
+    }).then(response => console.log("Saved to sheet:", response))
+      .catch(err => console.error("Error saving to sheet:", err));
+}
+</script>
+</body>
+</html>
