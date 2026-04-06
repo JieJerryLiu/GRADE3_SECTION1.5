@@ -242,6 +242,7 @@ function finishQuiz(){
     // --- send result to Google Sheet ---
     fetch(sheetURL, {
         method: 'POST',
+        mode: 'cors',
         headers: {'Content-Type':'application/json'},
         body: JSON.stringify({
             Name: studentName,
@@ -250,7 +251,8 @@ function finishQuiz(){
             Details: details.join("; "),
             Time: new Date().toISOString()
         })
-    }).then(response => console.log("Saved to sheet:", response))
+    }).then(res => res.json())
+      .then(data => console.log("Saved to sheet:", data))
       .catch(err => console.error("Error saving to sheet:", err));
 }
 </script>
