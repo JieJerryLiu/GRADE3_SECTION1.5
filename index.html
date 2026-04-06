@@ -248,7 +248,7 @@ function finishQuiz(){
         body: JSON.stringify({
             Name: studentName,
             Section: sectionName,
-            Score: score,
+            Score: `${score} / ${questions.length}`,
             Details: details.join("; "),
             Time: new Date().toISOString()
         })
